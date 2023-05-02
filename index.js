@@ -29,50 +29,22 @@ app.get("/api/hello", function (req, res) {
 
 app.get('/api', (req, res) => {
   let utcDate = new Date();
-
-  res.send({unix: utcDate.getTime(), utc:utcDate.toUTCString()});
+  res.send({unix: utcDate.getTime(), utc: utcDate.toUTCString()});
 });
 
-app.get('/api/([0-9]{4}-{0,}[0-9]{0,2}-{0,}[0-9]{0,2})', (req, res) => {
-  let route = req.path;
-  let routeDate = '';
-  for(let i = 5; i < route.length; i++)
-  {
-    routeDate += route[i]
-  }
-  let arrRouteDate = routeDate.split('-');
-  let arrDataNumber = [];
-  arrRouteDate.forEach((el) => {
-    if(el[0] === '0') return arrDataNumber.push(Number(el[1]));
-    return arrDataNumber.push(Number(el));
-  });
-  console.log(arrDataNumber);
-  if(arrDataNumber.length > 1)
-    arrDataNumber[1]--;
-    if(arrDataNumber[1] > 12) res.send({ error : "Invalid Date" });
+app.get('/api/:date', (req, res) => {
+  let dateParam = req.params.date;
+  console.log(new Date(dateParam));
 
-  let utcData = new Date(Date.UTC(...arrDataNumber));
-  let unixData = utcData.getTime()
-  res.send({unix: unixData, utc: utcData.toUTCString()});
+  let date = dateParam.indexOf('-') === -1 && dateParam.indexOf(' ') === -1 ? 
+    Number(dateParam) : dateParam;
+  let utcDate = new Date(date);
+  
+  if(isNaN(utcDate.getTime()))
+    res.send({error : utcDate.toUTCString()})
+  else
+    res.send({unix: utcDate.getTime(), utc: utcDate.toUTCString()}); 
 });
-
-
-app.get('/api/([0-9]{1,})', (req, res) => {
-  let routeDate = '';
-  let route = req.path;
-  for(let i = 5; i < route.length; i++)
-  {
-    routeDate += route[i]
-  }
-  let unixData = Number(routeDate);
-  let utcData = new Date(unixData);
-  res.send({unix: unixData, utc: utcData.toUTCString()});
-});
-
-app.get('/api/(.{1,})', (req, res) => {
-  res.send({ error : "Invalid Date" });
-})
-
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
